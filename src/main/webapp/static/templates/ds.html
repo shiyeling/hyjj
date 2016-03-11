@@ -1,0 +1,13 @@
+<div ms-controller="ds" class="detail ms-controller">
+    <p>Here is the list of data sources in system.</p>
+</div>
+<script>
+    require(['avalon'], function(){
+    //下面的其实建议写成一个模块detail.js然后由require引入 TODO
+        avalon.define({
+            $id: "ds",
+            ds : ['abc'];
+        });
+        avalon.scan();
+    })
+</script>

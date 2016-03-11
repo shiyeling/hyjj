@@ -13,9 +13,8 @@ request.setAttribute("current", current);
 request.setAttribute("begin", begin);
 request.setAttribute("end", end);
 %>
-
-<div class="pagination">
-	<ul>
+<nav>
+	<ul class="pagination">
 		 <% if (page.hasPreviousPage()){%>
                	<li><a href="?page=1&sortType=${sortType}&${searchParams}">&lt;&lt;</a></li>
                 <li><a href="?page=${current-1}&sortType=${sortType}&${searchParams}">&lt;</a></li>
@@ -44,5 +43,4 @@ request.setAttribute("end", end);
          <%} %>
 
 	</ul>
-</div>
-
+</nav>
