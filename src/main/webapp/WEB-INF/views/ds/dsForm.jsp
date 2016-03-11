@@ -3,10 +3,14 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <html>
 <head>
-<title>Data Source Management</title>
+<title>数据源管理</title>
 </head>
-
+	
 <body>
+	<ul class="nav nav-tabs">
+	  <li role="presentation" ><a href="${ctx}/">Home</a></li>
+	  <li role="presentation" class="active"><a href="#">数据源</a></li>
+	</ul>
 	<c:if test="${not empty message}">
 <%-- 		<div id="message" class="alert alert-warning"><button data-dismiss="alert" class="close">×</button>${message}</div> --%>
 			<c:if test="${success}">

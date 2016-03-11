@@ -11,6 +11,7 @@ import java.util.Map;
 import javax.servlet.ServletRequest;
 import javax.validation.Valid;
 
+import org.apache.ddlutils.model.Database;
 import org.apache.shiro.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,6 +82,15 @@ public class DataSourceController {
         return "ds/dsList";
     }
 
+    @RequestMapping(value = "model/{id}", method = RequestMethod.GET)
+    public String getDatabaseModel(@PathVariable("id") Long id, Model model) {
+        DataSource ds = dataSourceService.getDataSource(id);
+        model.addAttribute("ds", ds);
+        Database dbModel = dataSourceService.getDataModel(ds);
+        model.addAttribute("dbModel", dbModel);
+        return "ds/dsModel";
+    }
+
     @RequestMapping(value = "create", method = RequestMethod.GET)
     public String createForm(Model model) {
         model.addAttribute("ds", new DataSource());
@@ -114,22 +124,22 @@ public class DataSourceController {
 
     @RequestMapping(value = "test", method = RequestMethod.POST)
     public String test(@Valid @ModelAttribute("ds") DataSource ds, RedirectAttributes redirectAttributes) {
+        String msg = "";
         try {
             boolean success = dataSourceService.testDataSourceConnection(ds);
             ds.setValid(success);
             if (success) {
-                redirectAttributes.addFlashAttribute("success", true);
-                redirectAttributes.addFlashAttribute("message", "数据源测试连接成功");
+                msg = "数据源测试连接成功";
             } else {
-                redirectAttributes.addFlashAttribute("message", "数据源测试连接失败");
-                redirectAttributes.addFlashAttribute("success", false);
+                msg = "数据源测试连接失败";
             }
         } catch (SQLException e) {
-            redirectAttributes.addFlashAttribute("success", false);
-            redirectAttributes.addFlashAttribute("message",
-                    "数据源测试连接失败,原因：" + e.getMessage() + ", 错误代码:" + e.getErrorCode());
+            ds.setValid(false);
+            msg = "数据源测试连接失败,原因：" + e.getMessage() + ", 错误代码:" + e.getErrorCode();
             logger.info("User data source setting test failed.", e);
         }
+        redirectAttributes.addFlashAttribute("success", ds.isValid());
+        redirectAttributes.addFlashAttribute("message", msg);
         return "redirect:/ds/update/" + ds.getId();
     }
 

@@ -6,6 +6,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Map;
 
+import org.apache.ddlutils.Platform;
+import org.apache.ddlutils.PlatformFactory;
+import org.apache.ddlutils.model.Database;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,18 +48,35 @@ public class DataSourceService {
     }
 
     public boolean testDataSourceConnection(DataSource ds) throws SQLException {
-        String driverClsName = getDriverClassName(ds.getType());
-        Driver driver;
+
         boolean connectionReachable = false;
         try {
-            driver = (Driver) Class.forName(driverClsName).newInstance();
-            javax.sql.DataSource javaxDs = new SimpleDriverDataSource(driver, ds.getConnectionUrl(), ds.getUsername(),
-                    ds.getPassword());
+            javax.sql.DataSource javaxDs = getJavaxDataSource(ds);
             connectionReachable = verifyConnection(javaxDs, ds);
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
             logger.error("Not able to load driver", e);
         }
         return connectionReachable;
+    }
+
+    private javax.sql.DataSource getJavaxDataSource(DataSource ds)
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+        String driverClsName = getDriverClassName(ds.getType());
+        Driver driver;
+        driver = (Driver) Class.forName(driverClsName).newInstance();
+        return new SimpleDriverDataSource(driver, ds.getConnectionUrl(), ds.getUsername(), ds.getPassword());
+    }
+
+    public Database getDataModel(DataSource ds) {
+        javax.sql.DataSource javaxDs;
+        try {
+            javaxDs = getJavaxDataSource(ds);
+            Platform platform = PlatformFactory.createNewPlatformInstance(javaxDs);
+            return platform.readModelFromDatabase("demo");
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            logger.error("Not able to load driver", e);
+            throw new RuntimeException("Not able to load driver", e);
+        }
     }
 
     private boolean verifyConnection(javax.sql.DataSource javaxDs, DataSource hyjjDs) throws SQLException {

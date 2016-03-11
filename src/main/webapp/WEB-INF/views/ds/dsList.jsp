@@ -5,13 +5,13 @@
 
 <html>
 <head>
-	<title>任务管理</title>
+	<title>数据源管理</title>
 </head>
 
 <body>
 	<ul class="nav nav-tabs">
 	  <li role="presentation" ><a href="${ctx}/">Home</a></li>
-	  <li role="presentation" class="active"><a href="#">Data Sources</a></li>
+	  <li role="presentation" class="active"><a href="#">数据源</a></li>
 	</ul>
 	<c:if test="${not empty message}">
 		<div id="message" class="alert alert-success"><button data-dismiss="alert" class="close">×</button>${message}</div>
@@ -34,7 +34,11 @@
 				<td><a href="${ctx}/ds/update/${ds.id}">${ds.name}</a></td>
 				<td><a href="${ctx}/ds/update/${ds.id}">${ds.description}</a></td>
 				<td><a href="${ctx}/ds/update/${ds.id}">${ds.type}</a></td>
-				<td><a href="${ctx}/ds/delete/${ds.id}">删除</a></td>
+				<td>
+					<a href="${ctx}/ds/delete/${ds.id}">删除</a>
+					&nbsp;
+					<a href="${ctx}/ds/model/${ds.id}">数据模型</a>
+				</td>
 			</tr>
 		</c:forEach>
 		</tbody>
