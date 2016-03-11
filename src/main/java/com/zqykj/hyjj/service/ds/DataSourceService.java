@@ -1,13 +1,20 @@
 package com.zqykj.hyjj.service.ds;
 
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springside.modules.persistence.DynamicSpecifications;
@@ -22,6 +29,7 @@ import com.zqykj.hyjj.repository.DataSourceDao;
 // 类中所有public函数都纳入事务管理的标识.
 @Transactional
 public class DataSourceService {
+    private static Logger logger = LoggerFactory.getLogger(DataSourceService.class);
     private DataSourceDao dataSourceDao;
 
     public DataSource getDataSource(Long id) {
@@ -31,9 +39,38 @@ public class DataSourceService {
     public void saveDataSource(DataSource ds) {
         dataSourceDao.save(ds);
     }
-    
-    public void deleteDataSource(Long id){
+
+    public void deleteDataSource(Long id) {
         dataSourceDao.delete(id);
+    }
+
+    public boolean testDataSourceConnection(DataSource ds) throws SQLException {
+        String driverClsName = getDriverClassName(ds.getType());
+        Driver driver;
+        boolean connectionReachable = false;
+        try {
+            driver = (Driver) Class.forName(driverClsName).newInstance();
+            javax.sql.DataSource javaxDs = new SimpleDriverDataSource(driver, ds.getConnectionUrl(), ds.getUsername(),
+                    ds.getPassword());
+            connectionReachable = verifyConnection(javaxDs, ds);
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            logger.error("Not able to load driver", e);
+        }
+        return connectionReachable;
+    }
+
+    private boolean verifyConnection(javax.sql.DataSource javaxDs, DataSource hyjjDs) throws SQLException {
+        Connection conn = javaxDs.getConnection();
+        PreparedStatement ps = conn.prepareStatement("select 1");
+        ps.executeQuery();
+        return true;
+    }
+
+    private String getDriverClassName(String dbType) {
+        if (dbType.equals("mysql")) {
+            return "com.mysql.jdbc.Driver";
+        }
+        throw new IllegalArgumentException("Not Supported DBMS Type");
     }
 
     public Page<DataSource> getUserDataSource(Long userId, Map<String, Object> searchParams, int pageNumber,

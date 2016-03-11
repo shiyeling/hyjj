@@ -5,12 +5,15 @@
  *******************************************************************************/
 package com.zqykj.hyjj.web.ds;
 
+import java.sql.SQLException;
 import java.util.Map;
 
 import javax.servlet.ServletRequest;
 import javax.validation.Valid;
 
 import org.apache.shiro.SecurityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -46,7 +49,7 @@ import com.zqykj.hyjj.service.ds.DataSourceService;
 @Controller
 @RequestMapping(value = "/ds")
 public class DataSourceController {
-
+    private static Logger logger = LoggerFactory.getLogger(DataSourceController.class);
     private static final String PAGE_SIZE = "5";
 
     private static Map<String, String> sortTypes = Maps.newLinkedHashMap();
@@ -108,12 +111,26 @@ public class DataSourceController {
         redirectAttributes.addFlashAttribute("message", "更新数据源成功");
         return "redirect:/ds/";
     }
-    
+
     @RequestMapping(value = "test", method = RequestMethod.POST)
     public String test(@Valid @ModelAttribute("ds") DataSource ds, RedirectAttributes redirectAttributes) {
-        dataSourceService.saveDataSource(ds);
-        redirectAttributes.addFlashAttribute("message", "更新数据源成功");
-        return "redirect:/ds/";
+        try {
+            boolean success = dataSourceService.testDataSourceConnection(ds);
+            ds.setValid(success);
+            if (success) {
+                redirectAttributes.addFlashAttribute("success", true);
+                redirectAttributes.addFlashAttribute("message", "数据源测试连接成功");
+            } else {
+                redirectAttributes.addFlashAttribute("message", "数据源测试连接失败");
+                redirectAttributes.addFlashAttribute("success", false);
+            }
+        } catch (SQLException e) {
+            redirectAttributes.addFlashAttribute("success", false);
+            redirectAttributes.addFlashAttribute("message",
+                    "数据源测试连接失败,原因：" + e.getMessage() + ", 错误代码:" + e.getErrorCode());
+            logger.info("User data source setting test failed.", e);
+        }
+        return "redirect:/ds/update/" + ds.getId();
     }
 
     @RequestMapping(value = "delete/{id}")

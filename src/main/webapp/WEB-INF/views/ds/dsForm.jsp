@@ -7,9 +7,19 @@
 </head>
 
 <body>
+	<c:if test="${not empty message}">
+<%-- 		<div id="message" class="alert alert-warning"><button data-dismiss="alert" class="close">×</button>${message}</div> --%>
+			<c:if test="${success}">
+				<div id="message" class="alert alert-success"><button data-dismiss="alert" class="close">×</button>${message}</div>
+			</c:if>
+			<c:if test="${not success}">
+				<div id="message" class="alert alert-warning"><button data-dismiss="alert" class="close">×</button>${message}</div>
+			</c:if>
+	</c:if>
 	<form id="inputForm" action="${ctx}/ds/${action}" method="post"
 		class="form-horizontal">
 		<input type="hidden" name="id" value="${ds.id}" />
+		<input type="hidden" name="valid" value="${ds.valid}" />
 		<fieldset>
 			<legend>
 				<small>Data Source</small>
@@ -60,10 +70,10 @@
 				</div>
 			</div>
 			<div class="form-group">
-				<div class="col-sm-offset-2 col-sm-2">
+				<div class="col-sm-offset-2 col-sm-3">
 					<input id="submit_btn" class="btn btn-primary" type="submit"
 						value="提交" />
-						&nbsp; 
+						&nbsp;&nbsp;&nbsp;&nbsp;
 					<input id="cancel_btn" class="btn"
 						type="button" value="返回" onclick="history.back()" />
 					
@@ -71,7 +81,7 @@
 				
 				<div class="col-sm-offset-1 col-sm-2">
 					<input id="test_btn" class="btn"
-						type="button" value="测试连接" onclick="" />
+						type="button" value="测试连接" onclick="testConnection()" />
 				</div>
 			</div>
 		</fieldset>
@@ -83,6 +93,14 @@
 			//为inputForm注册validate函数
 			$("#inputForm").validate();
 		});
+
+		function testConnection(){
+			console.log($("#inputForm").action);
+			var a = $("#inputForm").attr('action');
+			var testAction = a.substr(0,a.lastIndexOf('/')) + '/test';
+			$("#inputForm").attr('action', testAction);
+			$("#inputForm").submit();
+		}
 	</script>
 </body>
 </html>
